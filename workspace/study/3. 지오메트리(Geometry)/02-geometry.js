@@ -15,6 +15,8 @@
 // GET https://cdn.skypack.dev/new/three@v0.157.0/... net::ERR_ABORTED 500 (Internal Server Error)
 import * as Three from 'https://esm.sh/three@0.157.0';
 import { OrbitControls } from 'https://esm.sh/three@0.157.0/examples/jsm/controls/OrbitControls.js';
+import { FontLoader } from 'https://esm.sh/three@0.157.0/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'https://esm.sh/three@0.157.0/examples/jsm/geometries/TextGeometry.js';
 
 // import 에러헤결 - END
 
@@ -36,7 +38,16 @@ class App{
 
         this._setupCamera(); 
         this._setupLight(); 
-        this._setupModel(); 
+        
+        // 모델 설정
+        // this._setupModel(); 
+        // this._setupModel_shapeTest(); 
+        // this._setupModelHeart(); 
+        // this._setupModelCurve(); 
+        // this._setupModelLatheLine();
+        // this._setupModel_Extrude();
+        this._setupModel_Text();
+
         this._setupControls(); // OrbitControls 추가
 
         
@@ -59,7 +70,11 @@ class App{
         const height = this._divContainer.clientHeight; 
 
         const camera = new Three.PerspectiveCamera(75, width / height, 0.1, 100); 
-        camera.position.z = 2; 
+        
+        // 카메라의 z 위치를 조정하기
+        // camera.position.z = 2; 
+        camera.position.z = 15;
+
         this._camera = camera; 
     }
 
@@ -119,6 +134,230 @@ class App{
 
         this._scene.add(group); // cube를 group으로 변경하여 line과 함께 추가합니다.
         this._cube = group;  // cube를 group으로 변경하여 line과 함께 추가합니다.
+    }
+
+    // ShapeGeometry 를 사용하여 하트 모양을 생성하는 메서드
+    _setupModelHeart() {
+       
+        const shape = new Three.Shape();
+
+        const x = -2.5, y = -5;
+        shape.moveTo(x + 2.5, y + 2.5);
+        shape.bezierCurveTo(x + 2.5, y + 1, x + 1.5, y, x, y);
+        shape.bezierCurveTo(x - 3, y, x - 3, y + 2.5, x - 3, y + 2.5);
+        shape.bezierCurveTo(x - 3, y + 4, x - 1.5, y + 6, x + 2.5, y + 8);
+        shape.bezierCurveTo(x + 6, y + 6, x + 8, y + 4, x + 8, y + 2.5);
+        shape.bezierCurveTo(x + 8, y + 2.5, x + 8, y, x + 5, y);
+        shape.bezierCurveTo(x + 3, y, x + 2.5, y + 1, x + 2.5, y + 2.5);
+        shape.closePath();
+
+        const geometry = new Three.ShapeGeometry(shape);
+
+        const fillMaterial = new Three.MeshStandardMaterial({ color: 0x515151 });
+        const cube = new Three.Mesh(geometry, fillMaterial);
+
+        const lineMaterial = new Three.LineBasicMaterial({ color: 0xffff00 });
+        const line = new Three.LineSegments(
+            new Three.WireframeGeometry(geometry), lineMaterial);
+
+        const group = new Three.Group();
+        group.add(cube);
+        group.add(line);
+
+        this._scene.add(group);
+        this._cube = group; 
+    }
+
+
+    // CurveGeometry를 사용하여 곡선 모델 생성
+    _setupModelCurve() {
+        class CustomCurve extends Three.Curve {
+           constructor(scale){
+            super();
+            this.scale = scale;
+           }
+           getPoint(t) {
+                const tx = t * 3 - 1.5;
+                const ty = Math.sin(2 * Math.PI * t);
+                const tz = 0;
+                return new Three.Vector3(tx, ty, tz).multiplyScalar(this.scale);
+            }
+        }
+
+        const path = new CustomCurve(4);
+
+        // 곡선 - start
+        // const geometry = new Three.BufferGeometry();
+        // const points = path.getPoints(310);
+        // geometry.setFromPoints(points);
+
+        // const material = new Three.LineBasicMaterial({ color: 0xff0000 });
+        // const line = new Three.Line(geometry, material);
+
+        // this._scene.add(line);
+        // 곡선 - end
+        
+        // 곡선 - 튜브형 - start
+        // TubeGeometry(곡선, 분할개수, 반지름, 세그먼트수, open여부)
+        const geometry = new Three.TubeGeometry(path, 100, 0.9, 8, false); 
+
+        const fillMaterial = new Three.MeshStandardMaterial({ color: 0x515151 });
+        const cube = new Three.Mesh(geometry, fillMaterial);
+
+        const lineMaterial = new Three.LineBasicMaterial({ color: 0xffff00 });
+        const line = new Three.LineSegments(
+            new Three.WireframeGeometry(geometry), lineMaterial);
+        
+        const group = new Three.Group();
+        group.add(cube);
+        group.add(line);
+
+        this._scene.add(group);
+        this._cube = group;
+        // 곡선 - 튜브형 - end
+    }
+
+
+    // LatheLine을 사용하여 직선을 회전시켜 모델을 생성
+    _setupModelLatheLine() {
+        const points = [];
+        for (let i = 0; i < 10; ++i) {
+            points.push(new Three.Vector3(Math.sin(i * 0.2) * 3 + 3, (i - 5) * .8));
+        }
+
+        // LatheGeometry(점들, 분할개수, 시작각도, 끝각도)
+        const geometry = new Three.LatheGeometry(points, 32, 0, Math.PI ); 
+
+        const fillMaterial = new Three.MeshStandardMaterial({ color: 0x515151 });
+        const cube = new Three.Mesh(geometry, fillMaterial);
+
+        const lineMaterial = new Three.LineBasicMaterial({ color: 0xffff00 });
+        const line = new Three.LineSegments(
+            new Three.WireframeGeometry(geometry), lineMaterial);
+
+        const group = new Three.Group();
+        group.add(cube);
+        group.add(line);
+
+        this._scene.add(group);
+        this._cube = group;
+    }
+
+    // 하트에 두께와 바벨 추가해서 입체감주기
+    // 베벨링 mesh의 윗면과 밑면은 비스듬하게 처리  
+    _setupModel_Extrude() {
+        const shape = new Three.Shape();
+
+        const x = -2.5, y = -5;
+        shape.moveTo(x + 2.5, y + 2.5);
+        shape.bezierCurveTo(x + 2.5, y + 1, x + 1.5, y, x, y);
+        shape.bezierCurveTo(x - 3, y, x - 3, y + 2.5, x - 3, y + 2.5);
+        shape.bezierCurveTo(x - 3, y + 4, x - 1.5, y + 6, x + 2.5, y + 8);
+        shape.bezierCurveTo(x + 6, y + 6, x + 8, y + 4, x + 8, y + 2.5);
+        shape.bezierCurveTo(x + 8, y + 2.5, x + 8, y, x + 5, y);
+        shape.bezierCurveTo(x + 3, y, x + 2.5, y + 1, x + 2.5, y + 2.5);
+        shape.closePath();
+
+        const settings = {
+            steps: 2, // 세그먼트 수
+            depth: 4, // 깊이
+            bevelEnabled: true, // 베벨링 활성화
+            bevelThickness: 1.6, // 베벨 두께
+            bevelSize: 1.5, // 베벨 크기
+            bevelOffset: 0, // 베벨 오프셋
+            bevelSegments: 1 // 베벨 세그먼트 수
+        }
+
+        const geometry = new Three.ExtrudeGeometry(shape, settings);
+
+        const fillMaterial = new Three.MeshStandardMaterial({ color: 0x515151 });
+        const cube = new Three.Mesh(geometry, fillMaterial);
+
+        const lineMaterial = new Three.LineBasicMaterial({ color: 0xffff00 });
+        const line = new Three.LineSegments(
+            new Three.WireframeGeometry(geometry), lineMaterial);
+
+        const group = new Three.Group();
+        group.add(cube);
+        group.add(line);
+
+        this._scene.add(group);
+        this._cube = group; 
+    }
+
+
+    _setupModel_Text() {
+        
+        const fontLoader = new FontLoader();
+
+        async function loadFont(that) {
+            const url = 'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json';
+            const font = await new Promise((resolve, reject) => {
+                fontLoader.load(url, resolve, undefined, reject);
+            });
+
+            const geometry = new TextGeometry('Hello Three.js', {
+                font: font, // 로드한 폰트 사용
+                size: 1, // 글자 크기
+                height: 0.2, // 글자 두께
+                curveSegments: 12, // 곡선 세그먼트 수
+                bevelEnabled: true, // 베벨링 활성화
+                bevelThickness: 0.1, // 베벨 두께
+                bevelSize: 0.05, // 베벨 크기
+                bevelOffset: 0, // 베벨 오프셋
+                bevelSegments: 5 // 베벨 세그먼트 수
+            });
+
+            const fillMaterial = new Three.MeshStandardMaterial({ color: 0x515151 });
+            const cube = new Three.Mesh(geometry, fillMaterial);
+            const lineMaterial = new Three.LineBasicMaterial({ color: 0xffff00 });
+            const line = new Three.LineSegments(
+                new Three.WireframeGeometry(geometry), lineMaterial);
+
+            const group = new Three.Group();
+            group.add(cube);
+            group.add(line);
+            that._scene.add(group);
+        }
+
+        // 로드하지않으면 화면에 아무것도 나타나지 않습니다.
+        loadFont(this); 
+    }
+
+    _setupModel_shapeTest() {
+
+        const shape = new Three.Shape();
+        
+        // shape을 지정하지않으면 빈화면만 나올뿐이다.
+        // 사각형
+        // shape.moveTo(1, 1);
+        // shape.lineTo(1, -1);
+        // shape.lineTo(-1, -1);   
+        // shape.lineTo(-1, 1);
+        // shape.closePath();
+
+
+        // 하트모양
+        const x = -2.5, y = -5;
+        shape.moveTo(x + 2.5, y + 2.5);
+        shape.bezierCurveTo(x + 2.5, y + 1, x + 1.5, y, x, y);
+        shape.bezierCurveTo(x - 3, y, x - 3, y + 2.5, x - 3, y + 2.5);
+        shape.bezierCurveTo(x - 3, y + 4, x - 1.5, y + 6, x + 2.5, y + 8);
+        shape.bezierCurveTo(x + 6, y + 6, x + 8, y + 4, x + 8, y + 2.5);
+        shape.bezierCurveTo(x + 8, y + 2.5, x + 8, y, x + 5, y);
+        shape.bezierCurveTo(x + 3, y, x + 2.5, y + 1, x + 2.5, y + 2.5);
+        shape.closePath(); 
+
+
+        const geometry = new Three.BufferGeometry();
+        const points = shape.getPoints();
+        geometry.setFromPoints(points);
+        
+        const material = new Three.LineBasicMaterial({ color: 0xffff00 });
+        const line = new Three.Line(geometry, material);
+        
+        this._scene.add(line);
+
     }
 
     resize() {
