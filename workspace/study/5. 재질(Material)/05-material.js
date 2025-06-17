@@ -23,7 +23,10 @@ class App{
 
         this._setupCamera(); 
         this._setupLight(); 
-        this._setupModel(); 
+        // this._setupModel(); 
+
+        this._setupModel_part3(); 
+
         this._setUpControls();
 
         
@@ -205,6 +208,52 @@ class App{
 
         // 05 material part 1 - end
         
+    }
+
+    _setupModel_part3() {
+        const textureLoader = new Three.TextureLoader();
+        const map = textureLoader.load('background.jpg', texture => { // 텍스처 이미지 로드
+
+            // 텍스처의 반복 설정 
+            texture.repeat.x = 2;
+            texture.repeat.y = 2;
+            
+            // 전체 반복
+            // texture.wrapS = Three.RepeatWrapping; // 수평 반복
+            // texture.wrapT = Three.RepeatWrapping; // 수직 반복
+
+            // 한번 매핑되고 이후 반복부터는 이미지의 끝단 픽셀로 나머지 영역을 채우기
+            // texture.wrapS = Three.ClampToEdgeWrapping; // 수평 반복
+            // texture.wrapT = Three.ClampToEdgeWrapping; // 수직 반복
+
+            // 이미지를 x y 축 방향으로 반복하되 짝수번째 반복에서는 거울에 반사되어 뒤집힘
+            texture.wrapS = Three.MirroredRepeatWrapping; // 수평 반복
+            texture.wrapT = Three.MirroredRepeatWrapping; // 수직 반복
+
+            texture.offset.x = 0.5; // 텍스처의 x축 오프셋
+            texture.offset.y = 0.5; // 텍스처의 y축 오프셋
+
+            texture.rotation = Three.MathUtils.degToRad(45); // 텍스처 회전 (라디안 단위로 변환)
+            texture.center.x = 0.5; // 텍스처의 x축 중심점
+            texture.center.y = 0.5; // 텍스처의 y축 중심점
+
+            // MipMap: 텍스처의 해상도를 줄여서 렌더링할 때 사용되는 기술
+            // MipMap은 텍스처의 여러 해상도를 미리 계산하여 저장한 것입니다. 해상도가 아주 낮은 경우에도 MipMap을 사용하면 성능이 향상됩니다.
+            texture.magFilter = Three.NearestFilter; // 확대 필터링 (NearestFilter: 픽셀을 확대할 때 가장 가까운 픽셀을 사용)
+            texture.minFilter = Three.NearestMipMapLinearFilter; // 축소 필터링 (LinearMipMapLinearFilter: MIP 맵을 사용하여 부드럽게 축소)
+        }); 
+
+        const material = new Three.MeshStandardMaterial({
+            map: map, // 텍스처 맵핑
+        });
+
+        const box = new Three.Mesh(new Three.BoxGeometry(1, 1, 1), material);
+        box.position.set(-1, 0, 0); // 박스 위치 설정
+        this._scene.add(box); // 박스를 씬에 추가
+
+        const sphere = new Three.Mesh(new Three.SphereGeometry(0.7, 32, 32), material);
+        sphere.position.set(1, 0, 0); // 구 위치 설정
+        this._scene.add(sphere); // 구를 씬에 추가
     }
 
     resize() {
