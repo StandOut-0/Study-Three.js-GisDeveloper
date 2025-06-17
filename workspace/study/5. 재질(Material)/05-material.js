@@ -4,6 +4,8 @@ import * as Three from '../../build/three.module.js';
 // 화면을 조작할 수 있는 OrbitControls를 가져옵니다.
 import { OrbitControls } from 'https://esm.sh/three@0.157.0/examples/jsm/controls/OrbitControls.js';
 
+import { VertexNormalsHelper } from 'https://esm.sh/three@0.157.0/examples/jsm/helpers/VertexNormalsHelper.js'; 
+
 class App{
     constructor() {
 
@@ -25,7 +27,8 @@ class App{
         this._setupLight(); 
         // this._setupModel(); 
 
-        this._setupModel_part3(); 
+        // this._setupModel_part3(); 
+        this._setupModel_part4(); 
 
         this._setUpControls();
 
@@ -46,8 +49,11 @@ class App{
         const height = this._divContainer.clientHeight; 
 
         const camera = new Three.PerspectiveCamera(75, width / height, 0.1, 100); 
-        camera.position.z = 3; 
+        camera.position.z = 1.5; 
         this._camera = camera; 
+
+        // 앰비언트 오클루전 맵을 위해서는 추가적인 setupuLight가 필요하다.
+        this._scene.add(camera);
     }
 
     
@@ -56,7 +62,12 @@ class App{
         const intensity = 2; 
         const light = new Three.DirectionalLight(color, intensity); 
         light.position.set(-1, 2, 4); 
-        this._scene.add(light); 
+        // this._scene.add(light); 
+
+        // 앰비언트 오클루전 맵을 위해서는 추가적인 setupuLight가 필요하다.
+        const ambientLight = new Three.AmbientLight(0xffffff, 0.2); 
+        this._scene.add(ambientLight);
+        this._camera.add(light); 
     }
 
     // 하트모양
@@ -254,6 +265,61 @@ class App{
         const sphere = new Three.Mesh(new Three.SphereGeometry(0.7, 32, 32), material);
         sphere.position.set(1, 0, 0); // 구 위치 설정
         this._scene.add(sphere); // 구를 씬에 추가
+    }
+
+
+    // https://3dtextures.me
+    // https://3dtextures.me/2020/07/15/glass-window-002
+    _setupModel_part4() {
+        const textureLoader = new Three.TextureLoader();
+        const map = textureLoader.load("../images/glass/Glass_Window_002_basecolor.jpg");
+        const mapAO = textureLoader.load("../images/glass/Glass_Window_002_ambientOcclusion.jpg");
+        const mapHeight = textureLoader.load("../images/glass/Glass_Window_002_height.png");
+        const mapNormal = textureLoader.load("../images/glass/Glass_Window_002_normal.jpg");
+        const mapRoughness = textureLoader.load("../images/glass/Glass_Window_002_roughness.jpg");
+        const mapMetalness = textureLoader.load("../images/glass/Glass_Window_002_metallic.jpg");
+        const mapAlpha = textureLoader.load("../images/glass/Glass_Window_002_opacity.jpg");
+
+        const material = new Three.MeshStandardMaterial({
+            map: map, // 기본 색상 맵
+            
+            // 노멀 맵
+            // 노멀 맵은 표면의 미세한 디테일을 표현하는 데 사용됩니다.
+            normalMap: mapNormal, // 노멀 맵
+            displacementMap: mapHeight, // 디스플레이스먼트 맵
+            displacementScale: 0.2, // 디스플레이스먼트 맵의 스케일
+            displacementBias: -0.15, // 디스플레이스먼트 맵의 바이어스
+
+            aoMap: mapAO, // 앰비언트 오클루전 맵
+            aoMapIntensity: 1.5, // 앰비언트 오클루전 맵의 강도
+
+            roughnessMap: mapRoughness, // 거칠기 맵 
+            roughness: 0.2, // 거칠기 값 (0.0 ~ 1.0) 보다 부드러워진 플라스틱 느낌이 난다.
+
+            metalnessMap: mapMetalness, // 금속성 맵
+            metalness: 0.9, // 금속성 값 (0.0 ~ 1.0) 유리이므로 금속성이 없음
+
+            alphaMap: mapAlpha, // 알파 맵 (투명도 맵)
+            transparent: true, // 투명도 설정
+            side: Three.DoubleSide, // 양면 렌더링
+
+        });
+
+        const box = new Three.Mesh(new Three.BoxGeometry(1, 1, 1, 152, 152, 152), material);
+        box.position.set(-1, 0, 0); // 박스 위치 설정
+        box.geometry.attributes.uv2 = box.geometry.attributes.uv; // 앰비언트 오클루전 맵을 위한 UV2 속성 설정
+        this._scene.add(box); // 박스를 씬에 추가
+
+        // const boxHelper = new VertexNormalsHelper(box, 0.1, 0xff0000, 1); // 박스의 노멀 벡터를 시각화
+        // this._scene.add(boxHelper); // 박스 헬퍼를 씬에 추가
+
+        const sphere = new Three.Mesh(new Three.SphereGeometry(0.7, 512, 512), material);
+        sphere.position.set(1, 0, 0); // 구 위치 설정
+        sphere.geometry.attributes.uv2 = sphere.geometry.attributes.uv; // 앰비언트 오클루전 맵을 위한 UV2 속성 설정
+        this._scene.add(sphere); // 구를 씬에 추가
+
+        // const sphereHelper = new VertexNormalsHelper(sphere, 0.1, 0xff0000, 1); // 구의 노멀 벡터를 시각화
+        // this._scene.add(sphereHelper); // 구 헬퍼를 씬에 추가
     }
 
     resize() {
