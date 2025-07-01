@@ -1,0 +1,19 @@
+1. Download Visual Studio Code
+https://code.visualstudio.com/Download
+
+2. Download three.js 압축해제 후 주요파일 확인하기
+https://github.com/mrdoob/three.js/archive/master.zip
+
+\three.js-master\build
+- three.js 일반
+- three.min.js 압축버전
+- module.js 모듈방식으로 개발할 수 있는 버전
+\three.js-master\docs 개발자 api 문서
+\three.js-master\examples 예제문서
+
+3. study/00_html.html생성
+4. lasunch.json 생성 및 상단바 run - start Debugging url확인
+ - file:///D:/%23%20Work/airquay/%23%20Task/Study-Three.js-GisDeveloper/workspace/study/00_html.html
+5. Extension - Live Server install
+6. 00_html.html파일을 띄운상태로 오른쪽 하단 바 golive 클릭 및 url 확인
+ - http://127.0.0.1:5500/study/00_html.html
